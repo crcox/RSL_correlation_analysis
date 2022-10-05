@@ -29,5 +29,6 @@ function Cz_adj = adjust_all_predictions(metadata, results, varargin)
                             'InputVariables', vars, ...
                             'ExtractCellContents', true, ...
                             'OutputFormat', 'cell');
+    end
 end
 
