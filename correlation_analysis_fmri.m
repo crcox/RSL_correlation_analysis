@@ -193,7 +193,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         metadata = meta_tbl.metadata(i, :);
 
         final_comb.corr3D = cell2mat(do_all_corr3D(metadata, final_comb));
-        perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb));
+        perm_comb.corr3D = cell2mat(do_all_corr3D(metadata, perm_comb));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     corr3D = struct('final', final_comb, 'perm', perm_comb);
