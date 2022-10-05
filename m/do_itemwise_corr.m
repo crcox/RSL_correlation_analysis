@@ -1,4 +1,4 @@
-function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, varargin);
+function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, varargin)
     p = inputParser();
     addRequired(p, "metadata", @isstruct);
     addRequired(p, "full_rank_target", @islogical);
@@ -10,6 +10,7 @@ function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, 
     addOptional(p, "label", [], @(x) isstring(x) || isempty(x));
     addOptional(p, "sim_source", [], @(x) isstring(x) || isempty(x));
     addOptional(p, "sim_metric", [], @(x) isstring(x) || isempty(x));
+    addOptional(p, "CategoryLabels", [], @(x) isstring(x) || isempty(x));
     parse(p, metadata, full_rank_target, subject, C, Cz, varargin{:});
 
     filters = p.Results.filters;
@@ -38,20 +39,30 @@ function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, 
     end
 
     [from, to] = meshgrid(find(z1), find(z1)); from = from(:); to = to(:);
-    is_animate = select_by_field(m.filters, struct('label', 'animate')).filter;
-    category = repmat("", length(is_animate), 1);
-    category(is_animate) = repmat("animate", nnz(is_animate), 1);
-    category(~is_animate) = repmat("inanimate", nnz(~is_animate), 1);
-    stimulus = string(m.stimuli);
+    k = length(p.Results.CategoryLabels);
+    Z = false(k, m.nrow);
+    category = repmat(p.Results.CategoryLabels(:), 1, m.nrow);
+    for i = 1:k
+        Z(i, :) = select_by_field(m.filters, struct('label', p.Results.CategoryLabels(i))).filter;
+    end
+    category = category(Z);
 
-    tbl = table(S(:), Sz(:), stimulus(from), stimulus(to), category(from), category(to), ...
+    % N.B. There is an inconsistency in how the "stimuli" metadata field is
+    % implemented across datasets. This conditional preserves compatibilty.
+    if isstruct(m.stimuli)
+        stimulus = string({m.stimuli.stimulus});
+    else
+        stimulus = string(m.stimuli);
+    end
+
+    tbl = table(S(:), Sz(:), colvec(stimulus(from)), colvec(stimulus(to)), colvec(category(from)), colvec(category(to)), ...
             'VariableNames', ["S", "Sz", "stim_from", "stim_to", "category_from", "category_to"]);
     tbl.within = tbl.category_from == tbl.category_to;
     tbl = tbl(tbl.stim_from ~= tbl.stim_to, :);
 
     tbl_cor = rowfun(@(y, p) corr(y, p), tbl, ...
         'InputVariables', ["S", "Sz"], ...
-        'GroupingVariables', ["stim_from"], ...
+        'GroupingVariables', "stim_from", ...
         'OutputVariableNames', "corr_all");
 
     tmp = rowfun(@(y, p) corr(y, p), tbl, ...
@@ -63,6 +74,6 @@ function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, 
     tbl_cor.corr_between = tmp.cor(~tmp.within);
 
     tbl_cor.Properties.VariableNames{1} = 'stim_id';
-    tbl_cor.is_animate = ismember(tbl_cor.stim_id, stimulus(is_animate));
-    tbl_cor = tbl_cor(:, ["stim_id", "is_animate", "corr_all", "corr_within", "corr_between"]);
+    tbl_cor = join(tbl_cor, table(stimulus(:), category(:), 'VariableNames', ["stim_id", "category"]));
+    tbl_cor = tbl_cor(:, ["stim_id", "category", "corr_all", "corr_within", "corr_between"]);
 end
