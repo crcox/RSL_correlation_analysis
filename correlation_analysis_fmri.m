@@ -26,6 +26,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     perm.Cz_adj = cell(height(perm), 1);
     textprogressbar(sprintf('%36s', 'Adjusting predictions: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
         metadata = meta_tbl.metadata(i, :);
 
@@ -47,12 +48,13 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     perm.testset = cell(height(perm), 1);
     textprogressbar(sprintf('%36s', 'Add test-set filter to each row: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
         final.testset = colvec(get_all_testsets(metadata, final, cvscheme));
         perm.testset = colvec(get_all_testsets(metadata, perm, cvscheme ));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -76,9 +78,10 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         tmp = mat2cell(meta_tbl.metadata, ones(height(meta_tbl), 1), size(meta_tbl.metadata, 2));
         textprogressbar(sprintf('%36s', 'Insert average into metadata: '));
         tic;
+        textprogressbar(0);
         for i = 1:height(meta_tbl)
-            textprogressbar((i/height(meta_tbl)) * 100);
             tmp{i} = [tmp{i}, average_metadata(tmp{i})];
+            textprogressbar((i/height(meta_tbl)) * 100);
         end
         meta_tbl.metadata = cell2mat(tmp);
         textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -151,14 +154,15 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     perm_comb.C = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Add filtered target to each row: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
         final_comb.C = colvec(get_all_embeddings(metadata, final_comb, ...
           scale_singular_vectors));
         perm_comb.C = colvec(get_all_embeddings(metadata, perm_comb, ...
           scale_singular_vectors));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -168,12 +172,13 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     perm_comb.fullmat = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Full matrix correlations: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
         final_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, final_comb);
         perm_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, perm_comb);
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     fullmat = struct('final', final_comb, 'perm', perm_comb);
@@ -181,19 +186,28 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
 
     %% Compute correlations between true and predicted embeddings by dimension ----
     final_comb.corr3D = zeros(height(final_comb), 3);
-    final_comb.corr3D_ani = zeros(height(final_comb), 3);
-    final_comb.corr3D_ina = zeros(height(final_comb), 3);
+    final_comb.corr3D_face = zeros(height(final_comb), 3);
+    final_comb.corr3D_place = zeros(height(final_comb), 3);
+    final_comb.corr3D_object = zeros(height(final_comb), 3);
     perm_comb.corr3D = zeros(height(perm_comb), 3);
-    perm_comb.corr3D_ani = zeros(height(perm_comb), 3);
-    perm_comb.corr3D_ina = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_face = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_place = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_object = zeros(height(perm_comb), 3);
     textprogressbar(sprintf('%36s', 'Correlations by dimension: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
         final_comb.corr3D = cell2mat(do_all_corr3D(metadata, final_comb));
+        final_comb.corr3D_faces = cell2mat(do_all_corr3D(metadata, final_comb, "faces"));
+        final_comb.corr3D_places = cell2mat(do_all_corr3D(metadata, final_comb, "places"));
+        final_comb.corr3D_objects = cell2mat(do_all_corr3D(metadata, final_comb, "objects"));
         perm_comb.corr3D = cell2mat(do_all_corr3D(metadata, perm_comb));
+        perm_comb.corr3D_faces = cell2mat(do_all_corr3D(metadata, perm_comb, "faces"));
+        perm_comb.corr3D_places = cell2mat(do_all_corr3D(metadata, perm_comb, "places"));
+        perm_comb.corr3D_objects = cell2mat(do_all_corr3D(metadata, perm_comb, "objects"));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     corr3D = struct('final', final_comb, 'perm', perm_comb);
@@ -204,12 +218,13 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     perm_comb.itemwise = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Itemwise correlations: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, final_comb);
-        perm_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, perm_comb);
+        final_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, final_comb, 'CategoryLabels', ["faces", "places", "objects"]);
+        perm_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, perm_comb, 'CategoryLabels', ["faces", "places", "objects"]);
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     itemwise = struct('final', final_comb, 'perm', perm_comb);
@@ -225,12 +240,14 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
 
     %% Compute group-level averages
     fprintf('Compute group-level averages ');
-    vars = ["corr_all_all", "corr_within_all", "corr_between_all", ...
-            "corr_all_ani", "corr_within_ani", "corr_between_ani", ...
-            "corr_all_ina", "corr_within_ina", "corr_between_ina", ...
-            "corr3D", "corr3D_ani", "corr3D_ina"];
+    vars = [
+        "corr_all_all", "corr_within_all", "corr_between_all", ...
+        "corr_all_faces", "corr_within_faces", "corr_between_faces", ...
+        "corr_all_places", "corr_within_places", "corr_between_places", ...
+        "corr_all_objects", "corr_within_objects", "corr_between_objects", ...
+        "corr3D", "corr3D_faces", "corr3D_places", "corr3D_objects" ...
+    ];
     final_avg = varfun(@mean, final_comb, ...
-                 'GroupingVariables', ["WindowStart", "WindowSize"], ...
                  'InputVariables', vars, ...
                  'OutputFormat', "table");
     final_avg.Properties.VariableNames = erase( ...
@@ -246,7 +263,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         % ECoG" paper. Currently untested.
         %
         perm_avg = varfun(@mean, perm_comb, ...
-                     'GroupingVariables', ["WindowStart", "WindowSize", "RandomSeed"], ...
+                     'GroupingVariables', "RandomSeed", ...
                      'InputVariables', vars, ...
                      'OutputFormat', "table");
         perm_avg.Properties.VariableNames = erase( ...
@@ -254,24 +271,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
             "mean_");
     else
         nrep = 10000;
-        func = @(subj, seed, varargin) ...
-            bootstrap_group_means(nrep, subj, seed, cell2mat(varargin));
-        unpack_means = @(means, varnames) cell2table(...
-            mat2cell(means, ones(size(means, 1), 1), [ones(1, 9), 3, 3, 3]), ...
-        'VariableNames', varnames);
-        tmp = rowfun(func, perm_comb, ...
-                    'GroupingVariables', ["WindowStart", "WindowSize"], ...
-                    'InputVariables', ["subject", "RandomSeed", vars], ...
-                    'ExtractCellContents', true, ...
-                    'OutputFormat', "table", ...
-                    'OutputVariableNames', "means");
-        perm_avg = removevars([tmp, unpack_means(tmp.means, vars)], ["GroupCount", "means"]);
-        perm_avg.RandomSeed = zeros(height(perm_avg), 1);
-        windows = unique(perm_avg(:, ["WindowStart", "WindowSize"]));
-        for i = 1:height(windows)
-            z = (perm_avg.WindowSize == windows.WindowSize(i)) & (perm_avg.WindowStart == windows.WindowStart(i));
-            perm_avg.RandomSeed(z) = (1:nnz(z))';
-        end
+        tmp = bootstrap_group_means(nrep, perm_comb.subject, perm_comb.RandomSeed, table2array(perm_comb(:, vars)));
+        perm_avg = cell2table(mat2cell(tmp, ones(size(tmp, 1), 1), [ones(1, 12), 3, 3, 3, 3]), 'VariableNames', vars);
+        perm_avg.RandomSeed = colvec(1:height(perm_avg));
     end
     perm_avg.subject = repmat("bs_avg", height(perm_avg), 1);
     fprintf('(%.2f s)\n', toc);
