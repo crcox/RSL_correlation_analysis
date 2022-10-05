@@ -1,11 +1,10 @@
-function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ...
-    final, perm, meta_tbl, analysis, full_rank_target, average_predicted_embeddings, ...
+function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ...
+    final, perm, meta_tbl, full_rank_target, average_predicted_embeddings, ...
     bootstrap_averaged_embeddings, cvscheme, scale_singular_vectors)
     arguments
         final table
         perm table
         meta_tbl table
-        analysis string
         full_rank_target logical = false
         average_predicted_embeddings logical = false
         bootstrap_averaged_embeddings logical = false
@@ -30,20 +29,10 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final.WindowStart == w;
-                zp = perm.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final.WindowSize == w;
-                zp = perm.WindowSize == w;
-        end
 
-        final.Cz_adj(zf) = colvec(adjust_all_predictions(metadata, final(zf, :), cvscheme, ...
+        final.Cz_adj(zf) = colvec(adjust_all_predictions(metadata, final, cvscheme, ...
           scale_singular_vectors));
-        perm.Cz_adj(zp) = colvec(adjust_all_predictions(metadata, perm(zp, :), cvscheme, ...
+        perm.Cz_adj(zp) = colvec(adjust_all_predictions(metadata, perm, cvscheme, ...
           scale_singular_vectors));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -61,19 +50,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final.WindowStart == w;
-                zp = perm.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final.WindowSize == w;
-                zp = perm.WindowSize == w;
-        end
 
-        final.testset(zf) = colvec(get_all_testsets(metadata, final(zf, :), cvscheme));
-        perm.testset(zp) = colvec(get_all_testsets(metadata, perm(zp, :), cvscheme ));
+        final.testset(zf) = colvec(get_all_testsets(metadata, final, cvscheme));
+        perm.testset(zp) = colvec(get_all_testsets(metadata, perm, cvscheme ));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -175,20 +154,10 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final_comb.WindowStart == w;
-                zp = perm_comb.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final_comb.WindowSize == w;
-                zp = perm_comb.WindowSize == w;
-        end
 
-        final_comb.C(zf) = colvec(get_all_embeddings(metadata, final_comb(zf, :), ...
+        final_comb.C(zf) = colvec(get_all_embeddings(metadata, final_comb, ...
           scale_singular_vectors));
-        perm_comb.C(zp) = colvec(get_all_embeddings(metadata, perm_comb(zp, :), ...
+        perm_comb.C(zp) = colvec(get_all_embeddings(metadata, perm_comb, ...
           scale_singular_vectors));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -202,19 +171,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final_comb.WindowStart == w;
-                zp = perm_comb.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final_comb.WindowSize == w;
-                zp = perm_comb.WindowSize == w;
-        end
 
-        final_comb.fullmat(zf) = do_all_fullmat_corr(metadata, full_rank_target, final_comb(zf, :));
-        perm_comb.fullmat(zp) = do_all_fullmat_corr(metadata, full_rank_target, perm_comb(zp, :));
+        final_comb.fullmat(zf) = do_all_fullmat_corr(metadata, full_rank_target, final_comb);
+        perm_comb.fullmat(zp) = do_all_fullmat_corr(metadata, full_rank_target, perm_comb);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     fullmat = struct('final', final_comb, 'perm', perm_comb);
@@ -232,24 +191,14 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final_comb.WindowStart == w;
-                zp = perm_comb.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final_comb.WindowSize == w;
-                zp = perm_comb.WindowSize == w;
-        end
 
-        final_comb.corr3D(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :)));
-        final_comb.corr3D_ani(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "animate"));
-        final_comb.corr3D_ina(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "inanimate"));
+        final_comb.corr3D(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb));
+        final_comb.corr3D_ani(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb, "animate"));
+        final_comb.corr3D_ina(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb, "inanimate"));
 
-        perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :)));
-        perm_comb.corr3D_ani(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "animate"));
-        perm_comb.corr3D_ina(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "inanimate"));
+        perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb));
+        perm_comb.corr3D_ani(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb, "animate"));
+        perm_comb.corr3D_ina(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb, "inanimate"));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     corr3D = struct('final', final_comb, 'perm', perm_comb);
@@ -263,19 +212,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     for i = 1:height(meta_tbl)
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
-        switch analysis
-            case "MovingWindow"
-                w = meta_tbl.WindowStart(i);
-                zf = final_comb.WindowStart == w;
-                zp = perm_comb.WindowStart == w;
-            case "OpeningWindow"
-                w = meta_tbl.WindowSize(i);
-                zf = final_comb.WindowSize == w;
-                zp = perm_comb.WindowSize == w;
-        end
 
-        final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb(zf, :));
-        perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb(zp, :));
+        final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb);
+        perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     itemwise = struct('final', final_comb, 'perm', perm_comb);
