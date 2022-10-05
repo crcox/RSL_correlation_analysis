@@ -27,13 +27,13 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     textprogressbar(sprintf('%36s', 'Adjusting predictions: '));
     tic;
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final.Cz_adj(zf) = colvec(adjust_all_predictions(metadata, final, cvscheme, ...
+        final.Cz_adj = colvec(adjust_all_predictions(metadata, final, cvscheme, ...
           scale_singular_vectors));
-        perm.Cz_adj(zp) = colvec(adjust_all_predictions(metadata, perm, cvscheme, ...
+        perm.Cz_adj = colvec(adjust_all_predictions(metadata, perm, cvscheme, ...
           scale_singular_vectors));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -51,8 +51,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final.testset(zf) = colvec(get_all_testsets(metadata, final, cvscheme));
-        perm.testset(zp) = colvec(get_all_testsets(metadata, perm, cvscheme ));
+        final.testset = colvec(get_all_testsets(metadata, final, cvscheme));
+        perm.testset = colvec(get_all_testsets(metadata, perm, cvscheme ));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -155,9 +155,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.C(zf) = colvec(get_all_embeddings(metadata, final_comb, ...
+        final_comb.C = colvec(get_all_embeddings(metadata, final_comb, ...
           scale_singular_vectors));
-        perm_comb.C(zp) = colvec(get_all_embeddings(metadata, perm_comb, ...
+        perm_comb.C = colvec(get_all_embeddings(metadata, perm_comb, ...
           scale_singular_vectors));
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -172,8 +172,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.fullmat(zf) = do_all_fullmat_corr(metadata, full_rank_target, final_comb);
-        perm_comb.fullmat(zp) = do_all_fullmat_corr(metadata, full_rank_target, perm_comb);
+        final_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, final_comb);
+        perm_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, perm_comb);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     fullmat = struct('final', final_comb, 'perm', perm_comb);
@@ -192,9 +192,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.corr3D(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb));
-        final_comb.corr3D_ani(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb, "animate"));
-        final_comb.corr3D_ina(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb, "inanimate"));
+        final_comb.corr3D = cell2mat(do_all_corr3D(metadata, final_comb));
+        final_comb.corr3D_ani = cell2mat(do_all_corr3D(metadata, final_comb, "animate"));
+        final_comb.corr3D_ina = cell2mat(do_all_corr3D(metadata, final_comb, "inanimate"));
 
         perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb));
         perm_comb.corr3D_ani(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb, "animate"));
@@ -213,8 +213,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb);
-        perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb);
+        final_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, final_comb);
+        perm_comb.itemwise = do_all_itemwise_corr(metadata, full_rank_target, perm_comb);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     itemwise = struct('final', final_comb, 'perm', perm_comb);
