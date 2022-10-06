@@ -12,6 +12,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
         scale_singular_vectors logical = true
     end
 
+    cleanupObj = onCleanup(@reset_progress_bar);
     full_timer = tic();
 
     %% Adjust predictions (undo normalization) ----
@@ -280,4 +281,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     corr3D_avg = struct('final', final_avg, 'perm', perm_avg);
     toc(full_timer);
 
+end
+
+function reset_progress_bar()
+    clear textprogressbar
 end
