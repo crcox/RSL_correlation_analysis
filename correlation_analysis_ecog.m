@@ -13,6 +13,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
         scale_singular_vectors logical = true
     end
 
+    cleanupObj = onCleanup(@reset_progress_bar);
     full_timer = tic();
 
     %% Adjust predictions (undo normalization) ----
@@ -27,8 +28,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm.Cz_adj = cell(height(perm), 1);
     textprogressbar(sprintf('%36s', 'Adjusting predictions: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -45,6 +46,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
           scale_singular_vectors));
         perm.Cz_adj(zp) = colvec(adjust_all_predictions(metadata, perm(zp, :), cvscheme, ...
           scale_singular_vectors));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -58,8 +60,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm.testset = cell(height(perm), 1);
     textprogressbar(sprintf('%36s', 'Add test-set filter to each row: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -74,6 +76,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
 
         final.testset(zf) = colvec(get_all_testsets(metadata, final(zf, :), cvscheme));
         perm.testset(zp) = colvec(get_all_testsets(metadata, perm(zp, :), cvscheme ));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -97,9 +100,10 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
         tmp = mat2cell(meta_tbl.metadata, ones(height(meta_tbl), 1), size(meta_tbl.metadata, 2));
         textprogressbar(sprintf('%36s', 'Insert average into metadata: '));
         tic;
+        textprogressbar(0);
         for i = 1:height(meta_tbl)
-            textprogressbar((i/height(meta_tbl)) * 100);
             tmp{i} = [tmp{i}, average_metadata(tmp{i})];
+            textprogressbar((i/height(meta_tbl)) * 100);
         end
         meta_tbl.metadata = cell2mat(tmp);
         textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -172,8 +176,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm_comb.C = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Add filtered target to each row: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -190,6 +194,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
           scale_singular_vectors));
         perm_comb.C(zp) = colvec(get_all_embeddings(metadata, perm_comb(zp, :), ...
           scale_singular_vectors));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
 
@@ -199,8 +204,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm_comb.fullmat = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Full matrix correlations: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -215,6 +220,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
 
         final_comb.fullmat(zf) = do_all_fullmat_corr(metadata, full_rank_target, final_comb(zf, :));
         perm_comb.fullmat(zp) = do_all_fullmat_corr(metadata, full_rank_target, perm_comb(zp, :));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     fullmat = struct('final', final_comb, 'perm', perm_comb);
@@ -229,8 +235,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm_comb.corr3D_ina = zeros(height(perm_comb), 3);
     textprogressbar(sprintf('%36s', 'Correlations by dimension: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -250,6 +256,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
         perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :)));
         perm_comb.corr3D_ani(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "animate"));
         perm_comb.corr3D_ina(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "inanimate"));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     corr3D = struct('final', final_comb, 'perm', perm_comb);
@@ -260,8 +267,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     perm_comb.itemwise = cell(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Itemwise correlations: '));
     tic;
+    textprogressbar(0);
     for i = 1:height(meta_tbl)
-        textprogressbar((i/height(meta_tbl)) * 100);
         metadata = meta_tbl.metadata(i, :);
         switch analysis
             case "MovingWindow"
@@ -276,6 +283,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
 
         final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb(zf, :));
         perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb(zp, :));
+        textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
     itemwise = struct('final', final_comb, 'perm', perm_comb);
@@ -344,4 +352,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     corr3D_avg = struct('final', final_avg, 'perm', perm_avg);
     toc(full_timer);
 
+end
+
+function reset_progress_bar()
+    clear textprogressbar
 end
