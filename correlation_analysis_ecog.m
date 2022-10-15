@@ -250,12 +250,12 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
         end
 
         final_comb.corr3D(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :)));
-        final_comb.corr3D_ani(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "animate"));
-        final_comb.corr3D_ina(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "inanimate"));
+        final_comb.corr3D_animate(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "animate"));
+        final_comb.corr3D_inanimate(zf, 1:3) = cell2mat(do_all_corr3D(metadata, final_comb(zf, :), "inanimate"));
 
         perm_comb.corr3D(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :)));
-        perm_comb.corr3D_ani(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "animate"));
-        perm_comb.corr3D_ina(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "inanimate"));
+        perm_comb.corr3D_animate(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "animate"));
+        perm_comb.corr3D_inanimate(zp, 1:3) = cell2mat(do_all_corr3D(metadata, perm_comb(zp, :), "inanimate"));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -281,8 +281,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
                 zp = perm_comb.WindowSize == w;
         end
 
-        final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb(zf, :));
-        perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb(zp, :));
+        final_comb.itemwise(zf) = do_all_itemwise_corr(metadata, full_rank_target, final_comb(zf, :), 'CategoryLabels', ["animate", "inanimate"]);
+        perm_comb.itemwise(zp) = do_all_itemwise_corr(metadata, full_rank_target, perm_comb(zp, :), 'CategoryLabels', ["animate", "inanimate"]);
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -300,9 +300,9 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
     %% Compute group-level averages
     fprintf('Compute group-level averages ');
     vars = ["corr_all_all", "corr_within_all", "corr_between_all", ...
-            "corr_all_ani", "corr_within_ani", "corr_between_ani", ...
-            "corr_all_ina", "corr_within_ina", "corr_between_ina", ...
-            "corr3D", "corr3D_ani", "corr3D_ina"];
+            "corr_all_animate", "corr_within_animate", "corr_between_animate", ...
+            "corr_all_inanimate", "corr_within_inanimate", "corr_between_inanimate", ...
+            "corr3D", "corr3D_animate", "corr3D_inanimate"];
     final_avg = varfun(@mean, final_comb, ...
                  'GroupingVariables', ["WindowStart", "WindowSize"], ...
                  'InputVariables', vars, ...
