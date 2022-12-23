@@ -169,16 +169,16 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
 
 
     %% Compute full-matrix correlations between true and predicted sim matrices ----
-    final_comb.fullmat = cell(height(final_comb), 1);
-    perm_comb.fullmat = cell(height(perm_comb), 1);
+    final_comb.fullmat = zeros(height(final_comb), 1);
+    perm_comb.fullmat = zeros(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Full matrix correlations: '));
     tic;
     textprogressbar(0);
     for i = 1:height(meta_tbl)
         metadata = meta_tbl.metadata(i, :);
 
-        final_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, final_comb);
-        perm_comb.fullmat = do_all_fullmat_corr(metadata, full_rank_target, perm_comb);
+        final_comb.fullmat = cell2mat(do_all_fullmat_corr(metadata, full_rank_target, final_comb));
+        perm_comb.fullmat = cell2mat(do_all_fullmat_corr(metadata, full_rank_target, perm_comb));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -242,7 +242,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     %% Compute group-level averages
     fprintf('Compute group-level averages ');
     vars = [
-        "corr_all_all", "corr_within_all", "corr_between_all", ...
+        "fullmat", "corr_all_all", "corr_within_all", "corr_between_all", ...
         "corr_all_faces", "corr_within_faces", "corr_between_faces", ...
         "corr_all_places", "corr_within_places", "corr_between_places", ...
         "corr_all_objects", "corr_within_objects", "corr_between_objects", ...
@@ -273,7 +273,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
     else
         nrep = 10000;
         tmp = bootstrap_group_means(nrep, perm_comb.subject, perm_comb.RandomSeed, table2array(perm_comb(:, vars)));
-        perm_avg = cell2table(mat2cell(tmp, ones(size(tmp, 1), 1), [ones(1, 12), 3, 3, 3, 3]), 'VariableNames', vars);
+        perm_avg = cell2table(mat2cell(tmp, ones(size(tmp, 1), 1), [ones(1, 13), 3, 3, 3, 3]), 'VariableNames', vars);
         perm_avg.RandomSeed = colvec(1:height(perm_avg));
     end
     perm_avg.subject = repmat("bs_avg", height(perm_avg), 1);

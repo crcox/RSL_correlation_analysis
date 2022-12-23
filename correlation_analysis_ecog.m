@@ -200,8 +200,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
 
 
     %% Compute full-matrix correlations between true and predicted sim matrices ----
-    final_comb.fullmat = cell(height(final_comb), 1);
-    perm_comb.fullmat = cell(height(perm_comb), 1);
+    final_comb.fullmat = zeros(height(final_comb), 1);
+    perm_comb.fullmat = zeros(height(perm_comb), 1);
     textprogressbar(sprintf('%36s', 'Full matrix correlations: '));
     tic;
     textprogressbar(0);
@@ -218,8 +218,8 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
                 zp = perm_comb.WindowSize == w;
         end
 
-        final_comb.fullmat(zf) = do_all_fullmat_corr(metadata, full_rank_target, final_comb(zf, :));
-        perm_comb.fullmat(zp) = do_all_fullmat_corr(metadata, full_rank_target, perm_comb(zp, :));
+        final_comb.fullmat(zf) = cell2mat(do_all_fullmat_corr(metadata, full_rank_target, final_comb(zf, :)));
+        perm_comb.fullmat(zp) = cell2mat(do_all_fullmat_corr(metadata, full_rank_target, perm_comb(zp, :)));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -299,7 +299,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
 
     %% Compute group-level averages
     fprintf('Compute group-level averages ');
-    vars = ["corr_all_all", "corr_within_all", "corr_between_all", ...
+    vars = ["fullmat", "corr_all_all", "corr_within_all", "corr_between_all", ...
             "corr_all_animate", "corr_within_animate", "corr_between_animate", ...
             "corr_all_inanimate", "corr_within_inanimate", "corr_between_inanimate", ...
             "corr3D", "corr3D_animate", "corr3D_inanimate"];
@@ -331,7 +331,7 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_ecog( ..
         func = @(subj, seed, varargin) ...
             bootstrap_group_means(nrep, subj, seed, cell2mat(varargin));
         unpack_means = @(means, varnames) cell2table(...
-            mat2cell(means, ones(size(means, 1), 1), [ones(1, 9), 3, 3, 3]), ...
+            mat2cell(means, ones(size(means, 1), 1), [ones(1, 10), 3, 3, 3]), ...
         'VariableNames', varnames);
         tmp = rowfun(func, perm_comb, ...
                     'GroupingVariables', ["WindowStart", "WindowSize"], ...
