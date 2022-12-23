@@ -187,13 +187,13 @@ function [fullmat, itemwise, corr3D, corr3D_avg] = correlation_analysis_fmri( ..
 
     %% Compute correlations between true and predicted embeddings by dimension ----
     final_comb.corr3D = zeros(height(final_comb), 3);
-    final_comb.corr3D_face = zeros(height(final_comb), 3);
-    final_comb.corr3D_place = zeros(height(final_comb), 3);
-    final_comb.corr3D_object = zeros(height(final_comb), 3);
+    final_comb.corr3D_faces = zeros(height(final_comb), 3);
+    final_comb.corr3D_places = zeros(height(final_comb), 3);
+    final_comb.corr3D_objects = zeros(height(final_comb), 3);
     perm_comb.corr3D = zeros(height(perm_comb), 3);
-    perm_comb.corr3D_face = zeros(height(perm_comb), 3);
-    perm_comb.corr3D_place = zeros(height(perm_comb), 3);
-    perm_comb.corr3D_object = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_faces = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_places = zeros(height(perm_comb), 3);
+    perm_comb.corr3D_objects = zeros(height(perm_comb), 3);
     textprogressbar(sprintf('%36s', 'Correlations by dimension: '));
     tic;
     textprogressbar(0);
