@@ -2,7 +2,7 @@ function corr3D = do_all_corr3D(metadata, results, varargin)
     p = inputParser();
     addRequired(p, 'metadata', @isstruct);
     addRequired(p, 'results', @istable);
-    addOptional(p, 'subset', [], @(x) isstring(x) || isempty(x));
+    addOptional(p, 'subset', string({}), @isstring);
     parse(p, metadata, results, varargin{:});
 
     subset = p.Results.subset;
