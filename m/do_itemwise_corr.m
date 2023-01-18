@@ -63,17 +63,17 @@ function tbl_cor = do_itemwise_corr(metadata, full_rank_target, subject, C, Cz, 
     tbl_cor = rowfun(@(y, p) corr(y, p), tbl, ...
         'InputVariables', ["S", "Sz"], ...
         'GroupingVariables', "stim_from", ...
-        'OutputVariableNames', "corr_all");
+        'OutputVariableNames', "itemcor_all");
 
     tmp = rowfun(@(y, p) corr(y, p), tbl, ...
         'InputVariables', ["S", "Sz"], ...
         'GroupingVariables', ["stim_from", "within"], ...
         'OutputVariableNames', "cor");
 
-    tbl_cor.corr_within = tmp.cor(tmp.within);
-    tbl_cor.corr_between = tmp.cor(~tmp.within);
+    tbl_cor.itemcor_within = tmp.cor(tmp.within);
+    tbl_cor.itemcor_between = tmp.cor(~tmp.within);
 
     tbl_cor.Properties.VariableNames{1} = 'stim_id';
     tbl_cor = join(tbl_cor, table(stimulus(:), category(:), 'VariableNames', ["stim_id", "category"]));
-    tbl_cor = tbl_cor(:, ["stim_id", "category", "corr_all", "corr_within", "corr_between"]);
+    tbl_cor = tbl_cor(:, ["stim_id", "category", "itemcor_all", "itemcor_within", "itemcor_between"]);
 end
