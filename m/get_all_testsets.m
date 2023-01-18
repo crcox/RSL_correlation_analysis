@@ -1,9 +1,9 @@
-function testsets = get_all_testsets(metadata, results, varargin)
+function testsets = get_all_testsets(metadata, results, cvscheme)
     p = inputParser();
     addRequired(p, "metadata", @isstruct);
     addRequired(p, "results", @istable);
-    addOptional(p, "cvscheme", 1, @(x) isnumeric(x) && floor(x) == x);
-    parse(p, metadata, results, varargin{:});
+    addRequired(p, "cvscheme", @(x) isnumeric(x) && floor(x) == x);
+    parse(p, metadata, results, cvscheme);
 
     cvscheme = p.Results.cvscheme;
 
