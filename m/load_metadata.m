@@ -4,7 +4,7 @@
 % Each metadata file is similar, but some important variables will differ.
 %
 % INPUTS
-%    analysis     : A string ("OpeningWindow" or "MovingWindow")
+%    window_type  : A string ("OpeningWindow" or "MovingWindow")
 %    baseline_size: A number indicating the size of the baseline window in ms.
 %    boxcar       : A number specifying the width of the boxcar kernel used to
 %                   reduce the effective sampling rate of the data (in ms).
@@ -19,9 +19,9 @@
 %
 % Other m-files required: construct_data_path.m
 %
-function m = load_metadata(analysis, baseline_size, boxcar, window_start, ...
+function m = load_metadata(window_type, baseline_size, boxcar, window_start, ...
                            window_size, filename, varname)
-    path = construct_data_path(analysis, baseline_size, boxcar, ...
+    path = construct_data_path(window_type, baseline_size, boxcar, ...
                                window_start, window_size);
 
     m = getfield(load(fullfile(path, filename)), string(varname));
