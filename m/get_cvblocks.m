@@ -1,4 +1,10 @@
 function cvblocks = get_cvblocks(metadata, cvscheme, subject, filters)
+    arguments
+        metadata struct
+        cvscheme (1,1) double {mustBeInteger}
+        subject (1,1) double {mustBeInteger}
+        filters (1,:) string = string.empty
+    end
     m = select_by_field(metadata, struct('subject', subject));
 
     if isempty(filters)

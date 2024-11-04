@@ -20,6 +20,7 @@
 % y = apply_normalization(x, m, s);
 % z = undo_normalization(y, m, s);
 %
+
 function y = undo_normalization(x, translate, scale)
     y = bsxfun(@plus, bsxfun(@times, x, scale), translate);
 end

@@ -1,29 +1,41 @@
-function embedding = get_embedding(metadata, subject, target_label, target_type, ...
-        sim_source, sim_metric, filters, filters_be,  scale_singular_vectors)
+function embedding = get_embedding(metadata, subject, opts)
+
+    arguments
+        metadata (:,:) struct
+        subject (1,1) double {mustBeInteger, mustBePositive}
+        opts.target_label (1,1) string {mustBeTextScalar} = "semantic"
+        opts.target_type (1,1) string {mustBeTextScalar} = "similarity"
+        opts.sim_source (1,1) string {mustBeTextScalar} = "Dilkina_Normalized"
+        opts.sim_metric (1,1) string {mustBeTextScalar} = "cosine"
+        opts.filters (1,:) string = string.empty
+        opts.filters_be (1,:) string = string.empty
+        opts.scale_singular_vectors (1,1) logical = true
+    end
+
     m = select_by_field(metadata, struct('subject', subject));
     t = select_by_field(m.targets, struct( ...
-                        'label', target_label, ...
+                        'label', opts.target_label, ...
                         'type', "similarity", ...
-                        'sim_source', regexprep(sim_source, '_Dim[1-9]+', ''), ...
-                        'sim_metric', sim_metric));
+                        'sim_source', regexprep(opts.sim_source, '_Dim[1-9]+', ''), ...
+                        'sim_metric', opts.sim_metric));
 
-    if isempty(filters_be)
+    if isempty(opts.filters_be)
         z0 = true(m.nrow, 1);
     else
-        z0 = get_row_filter(m.filters, filters_be);
+        z0 = get_row_filter(m.filters, opts.filters_be);
     end
 
     [svecs, svals] = embed_similarity_matrix(t.target(z0, z0), 3);
-    if scale_singular_vectors
+    if opts.scale_singular_vectors
         embedding = rescale_embedding(svecs, svals);
     else
         embedding = svecs;
     end
 
-    if isempty(filters)
+    if isempty(opts.filters)
         z1 = true(m.nrow, 1);
     else
-        z1 = get_row_filter(m.filters, filters);
+        z1 = get_row_filter(m.filters, opts.filters);
     end
 
     embedding = embedding(z1, :);
