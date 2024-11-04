@@ -25,17 +25,28 @@ function embedding = get_embedding(metadata, subject, opts)
         z0 = get_row_filter(m.filters, opts.filters_be);
     end
 
-    [svecs, svals] = embed_similarity_matrix(t.target(z0, z0), 3);
-    if opts.scale_singular_vectors
-        embedding = rescale_embedding(svecs, svals);
-    else
-        embedding = svecs;
-    end
-
-    if isempty(opts.filters)
         z1 = true(m.nrow, 1);
     else
         z1 = get_row_filter(m.filters, opts.filters);
+    end
+
+    switch target_type
+        case "embedding"
+            embedding = t.target;
+
+        case "similarity"
+            if isempty(filters_be)
+                z0 = true(m.nrow, 1);
+            else
+                z0 = get_row_filter(m.filters, filters_be);
+            end
+
+            [svecs, svals] = embed_similarity_matrix(t.target(z0, z0), 3);
+            if scale_singular_vectors
+                embedding = rescale_embedding(svecs, svals);
+            else
+                embedding = svecs;
+            end
     end
 
     embedding = embedding(z1, :);
