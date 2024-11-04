@@ -146,7 +146,7 @@ function [fullmat, itemwise, embedcor] = correlation_analysis(final, perm, meta_
     % CHANGES
     % =======
     % 2022 DEC  26
-    % * Refactored to make script more readible and modular.
+    % * Refactored to make script more readable and modular.
     % * Output structures/tables are segregaged by anaysis type.
     % --> Previously, variables from different analyses were acccumulating into
     %     a table at the end that had everything. It was confusing.
