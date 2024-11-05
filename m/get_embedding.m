@@ -24,7 +24,8 @@ function embedding = get_embedding(metadata, subject, opts)
     else
         z0 = get_row_filter(m.filters, opts.filters_be);
     end
-
+ 
+    if isempty(opts.filters)
         z1 = true(m.nrow, 1);
     else
         z1 = get_row_filter(m.filters, opts.filters);
