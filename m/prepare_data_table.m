@@ -107,7 +107,7 @@ function [data_tbl, meta_tbl] = prepare_data_table(data_tbl, meta_tbl, options)
                 z = true(height(data_tbl), 1);
         end
 
-        data_tbl.C(z) = colvec(get_all_embeddings(metadata, data_tbl(z, :), ...
+        data_tbl.C(z) = colvec(get_all_embeddings(data_tbl(z, :), metadata, ...
           options.scale_singular_vectors));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
