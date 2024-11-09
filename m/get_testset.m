@@ -1,11 +1,20 @@
-function testset = get_testset(metadata, cvscheme, subject, cvholdout, filters)
-    m = select_by_field(metadata, struct('subject', subject));
+function testset = get_testset(metadata, subject, options)
 
-    if isempty(filters)
-        z1 = true(m.nrow, 1);
-    else
-        z1 = get_row_filter(m.filters, filters);
+    arguments
+      metadata
+      subject
+      options.cvscheme
+      options.cvholdout
+      options.filters
     end
 
-    testset = m.cvind(z1, cvscheme) == cvholdout;
+    m = select_by_field(metadata, struct('subject', subject));
+
+    if isempty(options.filters)
+        z1 = true(m.nrow, 1);
+    else
+        z1 = get_row_filter(m.filters, options.filters);
+    end
+
+    testset = m.cvind(z1, options.cvscheme) == options.cvholdout;
 end

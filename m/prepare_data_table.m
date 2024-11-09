@@ -1,6 +1,4 @@
-function [data_tbl, meta_tbl] = prepare_data_table( ...
-    data_tbl, meta_tbl, window_type, average_predicted_embeddings, ...
-    bootstrap_averaged_embeddings, cvscheme, scale_singular_vectors)
+function [data_tbl, meta_tbl] = prepare_data_table(data_tbl, meta_tbl, options)
     %% Adjust predictions (undo normalization) ----
     % To adjust predictions, row-filters and target structures are required.
     % These are the same across all windows, so we can load a single metadata
@@ -12,11 +10,11 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
     arguments
         data_tbl table
         meta_tbl table
-        window_type string
-        average_predicted_embeddings logical = false
-        bootstrap_averaged_embeddings logical = false
-        cvscheme double = 1
-        scale_singular_vectors logical = true
+        options.window_type string
+        options.average_predicted_embeddings logical = false
+        options.bootstrap_averaged_embeddings logical = false
+        options.cvscheme double = 1
+        options.scale_singular_vectors logical = true
     end
     cleanupObj = onCleanup(@reset_progress_bar);
 
@@ -31,7 +29,7 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
     textprogressbar(0);
     for i = 1:height(meta_tbl)
         metadata = meta_tbl.metadata(i, :);
-        switch window_type
+        switch options.window_type
             case "MovingWindow"
                 w = meta_tbl.WindowStart(i);
                 z = data_tbl.WindowStart == w;
@@ -42,8 +40,9 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
                 z = true(height(data_tbl), 1);
         end
 
-        data_tbl.Cz_adj(z) = colvec(adjust_all_predictions(metadata, data_tbl(z, :), cvscheme, ...
-          scale_singular_vectors));
+        data_tbl.Cz_adj(z) = colvec(adjust_all_predictions(data_tbl(z, :), metadata, ...
+          cvscheme = options.cvscheme, ...
+          scale_singular_vectors = options.scale_singular_vectors));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -60,7 +59,7 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
     textprogressbar(0);
     for i = 1:height(meta_tbl)
         metadata = meta_tbl.metadata(i, :);
-        switch window_type
+        switch options.window_type
             case "MovingWindow"
                 w = meta_tbl.WindowStart(i);
                 z = data_tbl.WindowStart == w;
@@ -71,7 +70,8 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
                 z = true(height(data_tbl), 1);
         end
 
-        data_tbl.testset(z) = colvec(get_all_testsets(metadata, data_tbl(z, :), cvscheme));
+        data_tbl.testset(z) = colvec(get_all_testsets(data_tbl(z, :), metadata, ...
+            cvscheme = options.cvscheme));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));
@@ -84,8 +84,8 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
 
 
     %% **CONDITIONAL** Average predicted embeddings ----
-    if average_predicted_embeddings
-      [data_tbl, meta_tbl] = average_embeddings(data_tbl, meta_tbl, bootstrap_averaged_embeddings); % not implemented
+    if options.average_predicted_embeddings
+      [data_tbl, meta_tbl] = average_embeddings(data_tbl, meta_tbl, options.bootstrap_averaged_embeddings); % not implemented
     end
 
 
@@ -96,7 +96,7 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
     textprogressbar(0);
     for i = 1:height(meta_tbl)
         metadata = meta_tbl.metadata(i, :);
-        switch window_type
+        switch options.window_type
             case "MovingWindow"
                 w = meta_tbl.WindowStart(i);
                 z = data_tbl.WindowStart == w;
@@ -108,7 +108,7 @@ function [data_tbl, meta_tbl] = prepare_data_table( ...
         end
 
         data_tbl.C(z) = colvec(get_all_embeddings(metadata, data_tbl(z, :), ...
-          scale_singular_vectors));
+          options.scale_singular_vectors));
         textprogressbar((i/height(meta_tbl)) * 100);
     end
     textprogressbar(sprintf(' done (%.2f s)', toc));

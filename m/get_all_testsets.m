@@ -1,14 +1,16 @@
-function testsets = get_all_testsets(metadata, results, cvscheme)
-    p = inputParser();
-    addRequired(p, "metadata", @isstruct);
-    addRequired(p, "results", @istable);
-    addRequired(p, "cvscheme", @(x) isnumeric(x) && floor(x) == x);
-    parse(p, metadata, results, cvscheme);
+function testsets = get_all_testsets(results, metadata, options)
 
-    cvscheme = p.Results.cvscheme;
+    arguments
+      results
+      metadata
+      options.cvscheme
+    end
 
     vars = ["subject", "cvholdout", "filters"];
-    fun = @(varargin) get_testset(metadata, cvscheme, varargin{:});
+    fun = @(s,cv,f) get_testset(metadata, s, ...
+      cvscheme = options.cvscheme, ...
+      cvholdout = cv, ...
+      filters = f);
 
     if exists_parpool()
         testsets = par_rowfun(fun, results, ...
@@ -21,10 +23,4 @@ function testsets = get_all_testsets(metadata, results, cvscheme)
                           'ExtractCellContents', true, ...
                           'OutputFormat', "cell");
     end
-        %testsets = cell(height(results), 1);
-        %[~, ix_vars] = ismember(vars, results.Properties.VariableNames);
-        %parfor i = 1:height(results)
-        %    args = table2cell(results(i, ix_vars), 'ExtractCellContents', true);
-        %    testsets{i} = fun(args{:});
-        %end
 end
